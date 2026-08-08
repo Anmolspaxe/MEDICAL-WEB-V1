@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Portal — MediCare</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:       #00c9a7;
+      --teal-dark:  #00a88a;
+      --navy:       #1a2e44;
+      --text:       #2d3748;
+      --muted:      #718096;
+      --light-bg:   #f7fbfa;
+      --white:      #ffffff;
+      --red:        #e53e3e;
+      --card-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--light-bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────────────── */
+    header {
+      background: var(--white);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--navy), var(--teal));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .logo-text span:first-child { display: block; font-size: 16px; font-weight: 700; color: var(--navy); }
+    .logo-text span:last-child  { display: block; font-size: 11px; font-weight: 500; color: var(--teal); letter-spacing: 0.05em; text-transform: uppercase; }
+    .back-link {
+      font-size: 14px; color: var(--muted); text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--teal); }
+
+    /* ── HERO BANNER ─────────────────────────────────────────────── */
+    .hero-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 60%, #0a4a3a 100%);
+      color: #fff;
+      padding: 48px 24px 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(0,201,167,0.15) 0%, transparent 60%);
+    }
+    .hero-banner .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,201,167,0.15);
+      border: 1px solid rgba(0,201,167,0.3);
+      color: var(--teal);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+      padding: 6px 14px; border-radius: 30px;
+      margin-bottom: 16px; text-transform: uppercase;
+    }
+    .hero-banner h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 400; margin-bottom: 10px;
+    }
+    .hero-banner p { font-size: 15px; color: rgba(255,255,255,0.65); max-width: 420px; margin: 0 auto; }
+
+    /* ── UNIQUE ID CONCEPT BOX ──────────────────────────────────── */
+    .concept-box {
+      max-width: 680px; margin: -28px auto 0;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+      border-left: 4px solid var(--teal);
+      position: relative; z-index: 2;
+    }
+    .concept-box h3 {
+      font-size: 14px; font-weight: 700; color: var(--navy);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .concept-box p { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
+    .id-format {
+      background: #f0faf8;
+      border: 1px dashed var(--teal);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: monospace;
+      font-size: 14px;
+      color: var(--navy);
+      font-weight: 600;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .id-format span { color: var(--teal); }
+
+    /* ── TABS ────────────────────────────────────────────────────── */
+    .portal-wrap {
+      max-width: 480px; margin: 36px auto 60px;
+      padding: 0 16px;
+    }
+    .tabs {
+      display: flex;
+      background: var(--white);
+      border-radius: 12px;
+      padding: 4px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px;
+      border: none; background: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 600;
+      color: var(--muted); cursor: pointer;
+      border-radius: 9px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--navy);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(26,46,68,0.25);
+    }
+
+    /* ── CARD ────────────────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: var(--card-shadow);
+    }
+    .card h2 {
+      font-size: 20px; font-weight: 700; color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .card .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+    /* ── FORM ────────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--navy); margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; color: var(--text);
+      background: #fafafa;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.12);
+      background: #fff;
+    }
+    .form-group .hint {
+      font-size: 11px; color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Generated ID display */
+    .generated-id-wrap {
+      display: none;
+      background: #e6faf7;
+      border: 1.5px solid var(--teal);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .generated-id-wrap.show { display: block; }
+    .generated-id-wrap p { font-size: 12px; color: var(--teal-dark); font-weight: 600; margin-bottom: 4px; }
+    .generated-id-wrap .gid {
+      font-family: monospace; font-size: 22px;
+      font-weight: 700; color: var(--navy);
+      letter-spacing: 2px;
+    }
+    .generated-id-wrap small { font-size: 11px; color: var(--muted); display: block; margin-top: 4px; }
+
+    /* Password strength */
+    .strength-bar {
+      height: 4px; border-radius: 4px;
+      background: #e2e8f0; margin-top: 6px; overflow: hidden;
+    }
+    .strength-fill {
+      height: 100%; border-radius: 4px;
+      transition: width 0.3s, background 0.3s;
+      width: 0%;
+    }
+    .strength-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    /* Submit btn */
+    .submit-btn {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--navy), #1e3a5f);
+      color: #fff; border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,46,68,0.3); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Messages */
+    .msg {
+      padding: 11px 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      margin-bottom: 16px; display: none;
+    }
+    .msg.show { display: block; }
+    .msg.success { background: #e6faf7; color: #1a7a4a; border: 1px solid #a3e4c1; }
+    .msg.error   { background: #fff0f3; color: var(--red); border: 1px solid #f5b7b1; }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 20px 0; color: var(--muted); font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    }
+
+    /* ── SUCCESS OVERLAY ─────────────────────────────────────────── */
+    #reg-success {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 999;
+      justify-content: center; align-items: center;
+    }
+    #reg-success.show { display: flex; }
+    .reg-success-card {
+      background: #fff; border-radius: 20px;
+      padding: 48px 36px; text-align: center;
+      max-width: 400px; width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      animation: popUp 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    @keyframes popUp { from { transform:scale(0.7); opacity:0 } to { transform:scale(1); opacity:1 } }
+    .reg-success-card .circle {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, var(--navy), var(--teal));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .reg-success-card .circle svg { width: 38px; height: 38px; }
+    .reg-success-card h2 { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .reg-success-card p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .id-box {
+      background: #e6faf7; border: 1px dashed var(--teal);
+      border-radius: 10px; padding: 14px 20px;
+      margin: 18px 0;
+    }
+    .id-box p { font-size: 12px; color: var(--teal-dark); font-weight: 600; margin-bottom: 4px; }
+    .id-box .big-id { font-family: monospace; font-size: 24px; font-weight: 700; color: var(--navy); letter-spacing: 2px; }
+    .id-box small { font-size: 11px; color: var(--muted); }
+    .go-login-btn {
+      margin-top: 12px; padding: 12px 32px;
+      background: linear-gradient(135deg, var(--navy), var(--teal-dark));
+      color: #fff; border: none; border-radius: 30px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .go-login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,168,138,0.35); }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────────── -->
+<header>
+  <div class="header-inner">
+    <a href="page1_home.html" class="logo">
+      <div class="logo-icon">🏥</div>
+      <div class="logo-text">
+        <span>MediCare</span>
+        <span>General Hospital</span>
+      </div>
+    </a>
+    <a href="page1_home.html" class="back-link">
+      ← Back to Website
+    </a>
+  </div>
+</header>
+
+<!-- ── HERO ────────────────────────────────────────────────────── -->
+<div class="hero-banner">
+  <div class="badge">🩺 Staff Access</div>
+  <h1>Doctor Portal</h1>
+  <p>Register or sign in to manage your appointments and patient records.</p>
+</div>
+
+<!-- ── CONCEPT BOX ─────────────────────────────────────────────── -->
+<div style="max-width:680px;margin:0 auto;padding:0 16px;">
+  <div class="concept-box">
+    <h3>🪪 How Doctor IDs Work</h3>
+    <p>Every doctor at MediCare gets a unique Doctor ID automatically generated during registration. It is based on your department code, a random 4-digit number, and your initials — making it both unique and personal.</p>
+    <div class="id-format">
+      <span>MCR</span>-<span>DEPT</span>-<span>0000</span>-<span>AB</span>
+      &nbsp;&nbsp;→&nbsp;&nbsp;
+      Example: <strong>MCR-CARD-4821-RS</strong>
+    </div>
+    <p style="margin-top:10px;margin-bottom:0;">Your ID is shown after registration. <strong>Save it</strong> — you'll need it to log in.</p>
+  </div>
+</div>
+
+<!-- ── PORTAL CARD ──────────────────────────────────────────────── -->
+<div class="portal-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('register')">Register</button>
+    <button class="tab-btn" onclick="switchTab('login')">Sign In</button>
+  </div>
+
+  <!-- ── REGISTER FORM ── -->
+  <div id="tab-register" class="card">
+    <h2>Create Your Account</h2>
+    <p class="subtitle">Fill in your details — your Doctor ID will be generated automatically.</p>
+
+    <div id="reg-msg" class="msg"></div>
+
+    <div class="form-group">
+      <label>Full Name *</label>
+      <input type="text" id="reg-name" placeholder="Dr. Rajesh Sharma" required/>
+    </div>
+
+    <div class="form-group">
+      <label>Email Address *</label>
+      <input type="email" id="reg-email" placeholder="doctor@medicare.com" required/>
+    </div>
+
+    <div class="form-group">
+      <label>Department *</label>
+      <select id="reg-dept">
+        <option value="">— Select Department —</option>
+        <option value="CARD">Cardiology</option>
+        <option value="ORTH">Orthopedics</option>
+        <option value="NEURO">Neurology</option>
+        <option value="PEDI">Pediatrics</option>
+        <option value="DERM">Dermatology</option>
+        <option value="GYNE">Gynecology</option>
+        <option value="OPTH">Ophthalmology</option>
+        <option value="ENT">ENT</option>
+        <option value="PSYCH">Psychiatry</option>
+        <option value="GENSURG">General Surgery</option>
+        <option value="GENMED">General Medicine</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="tel" id="reg-phone" placeholder="+91 98765 43210"/>
+    </div>
+
+    <div class="form-group">
+      <label>Password *</label>
+      <input type="password" id="reg-password" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" required/>
+      <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+      <div class="strength-label" id="strength-label"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Confirm Password *</label>
+      <input type="password" id="reg-confirm" placeholder="Re-enter password" required/>
+    </div>
+
+    <!-- Generated ID preview -->
+    <div class="generated-id-wrap" id="id-preview">
+      <p>Your Doctor ID will be</p>
+      <div class="gid" id="preview-id">—</div>
+      <small>Generated from your name + department</small>
+    </div>
+
+    <button class="submit-btn" id="reg-btn" onclick="handleRegister()">
+      Register &amp; Get My Doctor ID
+    </button>
+  </div>
+
+  <!-- ── LOGIN FORM ── -->
+  <div id="tab-login" class="card" style="display:none;">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Sign in using your Doctor ID or registered email.</p>
+
+    <div id="login-msg" class="msg"></div>
+
+    <div class="form-group">
+      <label>Doctor ID or Email *</label>
+      <input type="text" id="login-id" placeholder="MCR-CARD-4821-RS or email"/>
+      <div class="hint">Use your unique Doctor ID (e.g. MCR-CARD-4821-RS) or your email address</div>
+    </div>
+
+    <div class="form-group">
+      <label>Password *</label>
+      <input type="password" id="login-password" placeholder="Your password"/>
+    </div>
+
+    <button class="submit-btn" id="login-btn" onclick="handleLogin()">
+      Sign In to Portal
+    </button>
+
+    <div class="divider">or</div>
+    <p style="text-align:center;font-size:13px;color:var(--muted);">
+      Don't have an account?
+      <a href="#" onclick="switchTab('register')" style="color:var(--teal);font-weight:600;text-decoration:none;">Register here</a>
+    </p>
+  </div>
+</div>
+
+<!-- ── REGISTRATION SUCCESS OVERLAY ───────────────────────────── -->
+<div id="reg-success">
+  <div class="reg-success-card">
+    <div class="circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <h2>Registration Successful!</h2>
+    <p>Welcome to MediCare, <strong id="success-doc-name">Doctor</strong>. Your unique Doctor ID has been created.</p>
+    <div class="id-box">
+      <p>Your Doctor ID</p>
+      <div class="big-id" id="success-doc-id">—</div>
+      <small>⚠️ Save this ID — you'll need it to log in</small>
+    </div>
+    <p style="font-size:12px;">Use this ID along with your password to sign in to the portal anytime.</p>
+    <button class="go-login-btn" onclick="afterRegister()">Go to Sign In →</button>
+  </div>
+</div>
+
+<script>
+  // ── Supabase ──────────────────────────────────────────────────
+  const SUPABASE_URL      = 'https://opggbcjkqnkwcaptmszy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_PI_Kg3Jccqchl9Q5WSPUIg_ftk2OmCF';
+  const supabaseClient    = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── Tab switch ────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('tab-register').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('tab-login').style.display    = tab === 'login'    ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'register') || (i === 1 && tab === 'login'));
+    });
+  }
+
+  // ── Generate Doctor ID ────────────────────────────────────────
+  // Format: MCR-{DEPT}-{4-digit random}-{initials}
+  function generateDoctorId(name, dept) {
+    if (!name || !dept) return null;
+    const parts = name.replace(/^dr\.?\s*/i, '').trim().split(/\s+/);
+    const initials = parts.map(p => p[0]?.toUpperCase() || '').join('').slice(0, 3);
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `MCR-${dept}-${rand}-${initials}`;
+  }
+
+  // Preview ID as user types
+  document.addEventListener('DOMContentLoaded', () => {
+    ['reg-name', 'reg-dept'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+    });
+  });
+
+  function updatePreview() {
+    const name = document.getElementById('reg-name').value;
+    const dept = document.getElementById('reg-dept').value;
+    const preview = document.getElementById('id-preview');
+    const previewId = document.getElementById('preview-id');
+    if (name && dept) {
+      previewId.textContent = generateDoctorId(name, dept);
+      preview.classList.add('show');
+    } else {
+      preview.classList.remove('show');
+    }
+  }
+
+  // ── Password strength ─────────────────────────────────────────
+  function checkStrength(val) {
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+    let score = 0;
+    if (val.length >= 8)              score++;
+    if (/[A-Z]/.test(val))            score++;
+    if (/[0-9]/.test(val))            score++;
+    if (/[^A-Za-z0-9]/.test(val))     score++;
+    const levels = [
+      { w: '0%',   bg: '#e2e8f0', text: '' },
+      { w: '25%',  bg: '#e53e3e', text: 'Weak' },
+      { w: '50%',  bg: '#ed8936', text: 'Fair' },
+      { w: '75%',  bg: '#ecc94b', text: 'Good' },
+      { w: '100%', bg: '#38a169', text: 'Strong' },
+    ];
+    fill.style.width      = levels[score].w;
+    fill.style.background = levels[score].bg;
+    label.textContent     = levels[score].text;
+    label.style.color     = levels[score].bg;
+  }
+
+  // ── Simple hash (for demo — use proper auth in production) ────
+  async function hashPassword(pw) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  // ── Show message ──────────────────────────────────────────────
+  function showMsg(id, type, text) {
+    const el = document.getElementById(id);
+    el.className = `msg ${type} show`;
+    el.textContent = text;
+  }
+
+  // ── REGISTER ─────────────────────────────────────────────────
+  async function handleRegister() {
+    const name     = document.getElementById('reg-name').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const dept     = document.getElementById('reg-dept').value;
+    const phone    = document.getElementById('reg-phone').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm  = document.getElementById('reg-confirm').value;
+
+    if (!name || !email || !dept || !password || !confirm) {
+      showMsg('reg-msg', 'error', '⚠️ Please fill in all required fields.'); return;
+    }
+    if (password !== confirm) {
+      showMsg('reg-msg', 'error', '⚠️ Passwords do not match.'); return;
+    }
+    if (password.length < 8) {
+      showMsg('reg-msg', 'error', '⚠️ Password must be at least 8 characters.'); return;
+    }
+
+    const btn = document.getElementById('reg-btn');
+    btn.disabled = true; btn.textContent = 'Registering...';
+
+    try {
+      const doctorId     = generateDoctorId(name, dept);
+      const passwordHash = await hashPassword(password);
+
+      // Check email not already registered
+      const { data: existing } = await supabaseClient
+        .from('doctors')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (existing) {
+        showMsg('reg-msg', 'error', '⚠️ This email is already registered. Please sign in.');
+        btn.disabled = false; btn.textContent = 'Register & Get My Doctor ID';
+        return;
+      }
+
+      const { error } = await supabaseClient.from('doctors').insert([{
+        doctor_id:     doctorId,
+        name:          name,
+        email:         email,
+        department:    dept,
+        phone:         phone || null,
+        password_hash: passwordHash,
+        created_at:    new Date().toISOString()
+      }]);
+
+      if (error) throw error;
+
+      // Show success overlay
+      document.getElementById('success-doc-name').textContent = name.replace(/^dr\.?\s*/i, '').split(' ')[0];
+      document.getElementById('success-doc-id').textContent   = doctorId;
+      document.getElementById('reg-success').classList.add('show');
+
+    } catch (err) {
+      showMsg('reg-msg', 'error', '❌ Registration failed: ' + err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Register & Get My Doctor ID';
+    }
+  }
+
+  function afterRegister() {
+    document.getElementById('reg-success').classList.remove('show');
+    switchTab('login');
+  }
+
+  // ── LOGIN ─────────────────────────────────────────────────────
+  async function handleLogin() {
+    const identifier = document.getElementById('login-id').value.trim();
+    const password   = document.getElementById('login-password').value;
+
+    if (!identifier || !password) {
+      showMsg('login-msg', 'error', '⚠️ Please fill in all fields.'); return;
+    }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Signing in...';
+
+    try {
+      const passwordHash = await hashPassword(password);
+
+      // Search by doctor_id OR email
+      const isEmail = identifier.includes('@');
+      const field   = isEmail ? 'email' : 'doctor_id';
+
+      const { data, error } = await supabaseClient
+        .from('doctors')
+        .select('*')
+        .eq(field, identifier)
+        .eq('password_hash', passwordHash)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        showMsg('login-msg', 'error', '❌ Invalid credentials. Check your Doctor ID / email and password.');
+        return;
+      }
+
+      // Save session to sessionStorage and redirect to doctor dashboard
+      sessionStorage.setItem('doctor', JSON.stringify({ id: data.doctor_id, name: data.name, dept: data.department }));
+      showMsg('login-msg', 'success', `✅ Welcome back, ${data.name}! Redirecting...`);
+      setTimeout(() => {
+        window.location.href = 'page8_doctor_dashboard.html';
+      }, 1500);
+
+    } catch (err) {
+      showMsg('login-msg', 'error', '❌ Login failed: ' + err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Sign In to Portal';
+    }
+  }
+
+  // ── Init preview listener ─────────────────────────────────────
+  window.addEventListener('load', () => {
+    document.getElementById('reg-name').addEventListener('input', updatePreview);
+    document.getElementById('reg-dept').addEventListener('change', updatePreview);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patient Reports — MediCare</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:   #0f1f35;
+      --navy2:  #1a2e44;
+      --teal:   #00c9a7;
+      --teal-d: #00a88a;
+      --muted:  #718096;
+      --border: #e2e8f0;
+      --off:    #f7fbfa;
+      --white:  #ffffff;
+      --text:   #1a202c;
+      --red:    #ef4444;
+      --sidebar-w: 240px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--off); color: var(--text); min-height: 100vh; display: flex; }
+
+    /* ── ACCESS DENIED ──────────────────────────────────────── */
+    #access-denied {
+      display: none; position: fixed; inset: 0;
+      background: var(--navy);
+      flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 40px; z-index: 9999;
+    }
+    #access-denied.show { display: flex; }
+    #access-denied .icon { font-size: 64px; margin-bottom: 20px; }
+    #access-denied h2 { font-family: 'Syne', sans-serif; font-size: 28px; color: #fff; margin-bottom: 10px; }
+    #access-denied p  { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 28px; max-width: 360px; }
+    #access-denied a  {
+      padding: 13px 32px; background: linear-gradient(135deg, var(--teal-d), var(--teal));
+      color: var(--navy); font-weight: 700; text-decoration: none;
+      border-radius: 30px; font-size: 14px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    #access-denied a:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,201,167,.35); }
+
+    /* ── SIDEBAR ────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w); min-height: 100vh;
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+    }
+    .sb-logo {
+      padding: 22px 18px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sb-logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--teal-d), var(--teal));
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .sb-logo .nm { color: #fff; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; }
+    .sb-logo .sm { color: rgba(255,255,255,.4); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+
+    .sb-user {
+      margin: 14px 12px;
+      background: rgba(255,255,255,.05);
+      border-radius: 10px; padding: 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sb-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal-d), #0e7490);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .sb-user-name { color: #fff; font-size: 13px; font-weight: 600; }
+    .sb-user-role { color: var(--teal); font-size: 11px; }
+
+    .sb-nav { padding: 6px 10px; flex: 1; }
+    .sb-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.25); text-transform: uppercase; letter-spacing: .1em; padding: 10px 8px 4px; }
+    .sb-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: 8px;
+      color: rgba(255,255,255,.6); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .2s; margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .sb-item:hover  { background: rgba(255,255,255,.07); color: #fff; }
+    .sb-item.active { background: rgba(0,201,167,.12); color: var(--teal); }
+    .sb-item .ic    { font-size: 16px; width: 20px; text-align: center; }
+    .sb-footer {
+      padding: 14px 10px;
+      border-top: 1px solid rgba(255,255,255,.07);
+    }
+    .logout-btn {
+      width: 100%; padding: 9px;
+      background: rgba(239,68,68,.1); color: #fca5a5;
+      border: 1px solid rgba(239,68,68,.2); border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+    }
+    .logout-btn:hover { background: rgba(239,68,68,.2); }
+
+    /* ── MAIN ───────────────────────────────────────────────── */
+    .main { margin-left: var(--sidebar-w); flex: 1; padding: 28px 32px; }
+
+    /* Top bar */
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .topbar h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--navy2); }
+    .topbar .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* Upload btn */
+    .upload-trigger {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 20px;
+      background: linear-gradient(135deg, var(--navy2), var(--navy));
+      color: #fff; border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: transform .2s, box-shadow .2s;
+    }
+    .upload-trigger:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,46,68,.3); }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--white); border-radius: 12px;
+      padding: 18px 16px; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .stat-val { font-size: 24px; font-weight: 700; color: var(--navy2); }
+    .stat-lbl { font-size: 12px; color: var(--muted); }
+
+    /* Filter bar */
+    .filter-bar {
+      background: var(--white); border-radius: 12px;
+      padding: 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filter-bar input, .filter-bar select {
+      padding: 8px 12px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; color: var(--text); outline: none;
+      transition: border-color .2s; background: #fafafa;
+    }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--teal); background: #fff; }
+    .filter-bar input { flex: 1; min-width: 180px; }
+
+    /* Report type pills */
+    .type-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .type-pill {
+      padding: 5px 12px; border-radius: 20px;
+      border: 1.5px solid var(--border); background: #fff;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      cursor: pointer; transition: all .15s;
+    }
+    .type-pill:hover  { border-color: var(--teal); color: var(--teal); }
+    .type-pill.active { border-color: var(--navy2); background: var(--navy2); color: #fff; }
+
+    /* Reports grid */
+    .reports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+    .report-card {
+      background: var(--white); border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.05);
+      overflow: hidden; transition: transform .2s, box-shadow .2s;
+      cursor: pointer;
+    }
+    .report-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.1); }
+
+    /* Report type color strips */
+    .report-card .strip { height: 5px; }
+    .strip-xray     { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+    .strip-mri      { background: linear-gradient(90deg, #0ea5e9, #06b6d4); }
+    .strip-ultrasound { background: linear-gradient(90deg, #10b981, #34d399); }
+    .strip-ctscan   { background: linear-gradient(90deg, #f97316, #fb923c); }
+    .strip-bloodtest { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .strip-ecg      { background: linear-gradient(90deg, #ec4899, #f472b6); }
+    .strip-other    { background: linear-gradient(90deg, #a1a1aa, #d4d4d8); }
+
+    .report-card .body { padding: 16px; }
+    .report-type-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; margin-bottom: 10px;
+    }
+    .badge-xray      { background: #ede9fe; color: #6d28d9; }
+    .badge-mri       { background: #e0f2fe; color: #0369a1; }
+    .badge-ultrasound{ background: #d1fae5; color: #065f46; }
+    .badge-ctscan    { background: #fff7ed; color: #9a3412; }
+    .badge-bloodtest { background: #fee2e2; color: #991b1b; }
+    .badge-ecg       { background: #fce7f3; color: #9d174d; }
+    .badge-other     { background: #f4f4f5; color: #52525b; }
+
+    .report-patient-name { font-size: 15px; font-weight: 700; color: var(--navy2); margin-bottom: 3px; }
+    .report-patient-id   { font-size: 11px; color: var(--muted); font-family: monospace; margin-bottom: 10px; }
+    .report-meta { display: flex; flex-direction: column; gap: 4px; }
+    .report-meta span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .report-meta b { color: var(--text); font-weight: 600; }
+
+    .report-card .footer {
+      padding: 10px 16px 14px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .report-card .uploader { font-size: 11px; color: var(--muted); }
+    .view-btn {
+      padding: 6px 14px; border-radius: 8px;
+      background: var(--off); border: 1.5px solid var(--border);
+      font-size: 12px; font-weight: 600; color: var(--navy2);
+      cursor: pointer; transition: all .15s;
+    }
+    .view-btn:hover { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty .ei { font-size: 52px; margin-bottom: 12px; }
+    .empty h3  { font-size: 16px; color: var(--navy2); margin-bottom: 6px; }
+
+    /* Spinner */
+    .spinner { display: flex; justify-content: center; padding: 48px; }
+    .spin { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── UPLOAD MODAL ───────────────────────────────────────── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 200;
+      justify-content: center; align-items: center; padding: 20px;
+    }
+    .overlay.show { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 20px;
+      width: 100%; max-width: 520px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.2);
+      animation: pop .35s cubic-bezier(.175,.885,.32,1.275);
+      overflow: hidden; max-height: 90vh; overflow-y: auto;
+    }
+    @keyframes pop { from { transform:scale(.85); opacity:0 } to { transform:scale(1); opacity:1 } }
+    .modal-header {
+      background: var(--navy); padding: 18px 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 1;
+    }
+    .modal-header h3 { color: #fff; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; }
+    .modal-close { color: rgba(255,255,255,.5); background: none; border: none; font-size: 22px; cursor: pointer; }
+    .modal-close:hover { color: #fff; }
+    .modal-body { padding: 24px; }
+
+    .fg { margin-bottom: 15px; }
+    .fg label { display: block; font-size: 12px; font-weight: 700; color: var(--navy2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+    .fg input, .fg select, .fg textarea {
+      width: 100%; padding: 10px 13px;
+      border: 1.5px solid var(--border); border-radius: 9px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      color: var(--text); background: #fafafa; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .fg input:focus, .fg select:focus, .fg textarea:focus {
+      border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,201,167,.1); background: #fff;
+    }
+    .fg textarea { resize: vertical; min-height: 70px; }
+    .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: 12px;
+      padding: 32px 20px; text-align: center;
+      background: #fafafa; cursor: pointer;
+      transition: all .2s; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag { border-color: var(--teal); background: #e6faf7; }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .drop-zone .dz-icon { font-size: 36px; margin-bottom: 8px; }
+    .drop-zone .dz-txt  { font-size: 13px; font-weight: 600; color: var(--navy2); margin-bottom: 4px; }
+    .drop-zone .dz-sub  { font-size: 11px; color: var(--muted); }
+    .file-selected { font-size: 12px; color: var(--teal-d); font-weight: 600; margin-top: 8px; }
+
+    /* Progress */
+    .progress-wrap { display: none; margin-top: 12px; }
+    .progress-wrap.show { display: block; }
+    .progress-bar { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal-d), var(--teal)); width: 0; transition: width .3s; border-radius: 6px; }
+    .progress-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .submit-btn {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--navy2), var(--navy));
+      color: #fff; border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 4px;
+      transition: transform .2s, box-shadow .2s, opacity .2s;
+    }
+    .submit-btn:hover    { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,46,68,.3); }
+    .submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 14px; display: none; }
+    .msg.show    { display: block; }
+    .msg.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .msg.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    /* ── VIEW REPORT MODAL ──────────────────────────────────── */
+    .report-preview { display: flex; flex-direction: column; gap: 14px; }
+    .preview-file {
+      background: #111827; border-radius: 12px;
+      overflow: hidden; min-height: 200px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview-file img { max-width: 100%; max-height: 500px; object-fit: contain; }
+    .preview-file iframe { width: 100%; height: 500px; border: none; }
+    .preview-file .no-preview { color: rgba(255,255,255,.4); font-size: 13px; text-align: center; padding: 40px; }
+    .preview-file .file-icon  { font-size: 64px; display: block; margin-bottom: 10px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .k { color: var(--muted); }
+    .detail-row .v { font-weight: 600; color: var(--navy2); text-align: right; }
+    .download-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, var(--teal-d), var(--teal));
+      color: var(--navy); border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .download-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,201,167,.35); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 20px 16px; }
+      .stats { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── ACCESS DENIED ────────────────────────────────────────────── -->
+<div id="access-denied">
+  <div class="icon">🔒</div>
+  <h2>Access Restricted</h2>
+  <p>This portal is only accessible to authorised hospital staff and doctors. Please sign in with your credentials.</p>
+  <a href="login.html">Sign In to Continue</a>
+</div>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🏥</div>
+    <div>
+      <div class="nm">MediCare</div>
+      <div class="sm">Reports Portal</div>
+    </div>
+  </div>
+
+  <div class="sb-user">
+    <div class="sb-avatar" id="sb-avatar">S</div>
+    <div>
+      <div class="sb-user-name" id="sb-name">Staff</div>
+      <div class="sb-user-role" id="sb-role">—</div>
+    </div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-label">Reports</div>
+    <div class="sb-item active"><span class="ic">📂</span> All Reports</div>
+    <a href="#" class="sb-item" onclick="filterByType('X-Ray')"><span class="ic">🦴</span> X-Ray</a>
+    <a href="#" class="sb-item" onclick="filterByType('MRI')"><span class="ic">🧠</span> MRI</a>
+    <a href="#" class="sb-item" onclick="filterByType('Ultrasound')"><span class="ic">🔊</span> Ultrasound</a>
+    <a href="#" class="sb-item" onclick="filterByType('CT Scan')"><span class="ic">💿</span> CT Scan</a>
+    <a href="#" class="sb-item" onclick="filterByType('Blood Test')"><span class="ic">🩸</span> Blood Test</a>
+    <a href="#" class="sb-item" onclick="filterByType('ECG')"><span class="ic">💓</span> ECG</a>
+    <div class="sb-label">Navigation</div>
+    <a class="sb-item" href="page1_home.html"><span class="ic">🌐</span> Website</a>
+  </nav>
+
+  <div class="sb-footer">
+    <button class="logout-btn" onclick="logout()">🚪 Sign Out</button>
+  </div>
+</aside>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────── -->
+<main class="main" id="main-content" style="display:none;">
+
+  <div class="topbar">
+    <div>
+      <h1>Patient Reports</h1>
+      <div class="sub" id="topbar-sub">Secure medical records — staff & doctors only</div>
+    </div>
+    <button class="upload-trigger" id="upload-trigger-btn" onclick="openUploadModal()" style="display:none;">
+      ＋ Upload Report
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card"><div class="stat-icon" style="background:#ede9fe;">📂</div><div><div class="stat-val" id="st-total">0</div><div class="stat-lbl">Total Reports</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#e0f2fe;">🦴</div><div><div class="stat-val" id="st-xray">0</div><div class="stat-lbl">X-Ray</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#d1fae5;">🧠</div><div><div class="stat-val" id="st-mri">0</div><div class="stat-lbl">MRI</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fff7ed;">🩸</div><div><div class="stat-val" id="st-other">0</div><div class="stat-lbl">Other Types</div></div></div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <input type="text" id="search-input" placeholder="🔍  Search patient name or ID..." oninput="applyFilters()"/>
+    <select id="type-filter" onchange="applyFilters()">
+      <option value="">All Types</option>
+      <option>X-Ray</option><option>MRI</option><option>Ultrasound</option>
+      <option>CT Scan</option><option>Blood Test</option><option>ECG</option><option>Other</option>
+    </select>
+    <select id="doctor-filter" onchange="applyFilters()">
+      <option value="">All Doctors</option>
+    </select>
+  </div>
+
+  <!-- Reports grid -->
+  <div id="reports-container">
+    <div class="spinner"><div class="spin"></div></div>
+  </div>
+
+</main>
+
+<!-- ── UPLOAD MODAL ──────────────────────────────────────────────── -->
+<div class="overlay" id="upload-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📤 Upload Patient Report</h3>
+      <button class="modal-close" onclick="closeUploadModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="upload-msg" class="msg"></div>
+
+      <div class="fg-row">
+        <div class="fg">
+          <label>Patient Name *</label>
+          <input type="text" id="u-patient-name" placeholder="Rahul Sharma"/>
+        </div>
+        <div class="fg">
+          <label>Patient ID</label>
+          <input type="text" id="u-patient-id" placeholder="MCP-20240001"/>
+        </div>
+      </div>
+
+      <div class="fg-row">
+        <div class="fg">
+          <label>Report Type *</label>
+          <select id="u-type">
+            <option value="">Select type</option>
+            <option>X-Ray</option><option>MRI</option><option>Ultrasound</option>
+            <option>CT Scan</option><option>Blood Test</option><option>ECG</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Assigned Doctor *</label>
+          <select id="u-doctor">
+            <option value="">Loading...</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Report Date *</label>
+        <input type="date" id="u-date"/>
+      </div>
+
+      <div class="fg">
+        <label>Notes / Description</label>
+        <textarea id="u-notes" placeholder="Any observations or notes about this report..."></textarea>
+      </div>
+
+      <div class="fg">
+        <label>Upload File *</label>
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="u-file" accept="image/*,.pdf,.dcm" onchange="fileSelected(this)"/>
+          <div class="dz-icon">📁</div>
+          <div class="dz-txt">Drop file here or click to browse</div>
+          <div class="dz-sub">Supports: JPG, PNG, PDF, DICOM — Max 20MB</div>
+          <div class="file-selected" id="file-name-display"></div>
+        </div>
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="progress-label" id="progress-label">Uploading...</div>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="upload-btn" onclick="uploadReport()">Upload Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIEW REPORT MODAL ─────────────────────────────────────────── -->
+<div class="overlay" id="view-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="view-modal-title">Report Details</h3>
+      <button class="modal-close" onclick="document.getElementById('view-overlay').classList.remove('show')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="report-preview" id="report-preview-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL      = 'https://opggbcjkqnkwcaptmszy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_PI_Kg3Jccqchl9Q5WSPUIg_ftk2OmCF';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const BUCKET = 'patient-reports'; // Supabase Storage bucket name
+
+  let currentUser = null;
+  let currentRole = null;
+  let allReports  = [];
+
+  // ── Type config ─────────────────────────────────────────────────
+  const TYPE_CONFIG = {
+    'X-Ray':      { strip:'strip-xray',      badge:'badge-xray',      icon:'🦴' },
+    'MRI':        { strip:'strip-mri',        badge:'badge-mri',       icon:'🧠' },
+    'Ultrasound': { strip:'strip-ultrasound', badge:'badge-ultrasound',icon:'🔊' },
+    'CT Scan':    { strip:'strip-ctscan',     badge:'badge-ctscan',    icon:'💿' },
+    'Blood Test': { strip:'strip-bloodtest',  badge:'badge-bloodtest', icon:'🩸' },
+    'ECG':        { strip:'strip-ecg',        badge:'badge-ecg',       icon:'💓' },
+    'Other':      { strip:'strip-other',      badge:'badge-other',     icon:'📄' },
+  };
+
+  // ── AUTH CHECK ───────────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    const doctor  = sessionStorage.getItem('doctor');
+    const recept  = sessionStorage.getItem('receptionist');
+
+    if (doctor) {
+      currentUser = JSON.parse(doctor);
+      currentRole = 'doctor';
+    } else if (recept) {
+      currentUser = JSON.parse(recept);
+      currentRole = 'receptionist';
+    } else {
+      document.getElementById('access-denied').classList.add('show');
+      return;
+    }
+
+    initPage();
+  });
+
+  function initPage() {
+    // Show main content
+    document.getElementById('main-content').style.display = 'block';
+
+    // Fill sidebar user info
+    const initials = currentUser.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('sb-avatar').textContent = initials;
+    document.getElementById('sb-name').textContent   = currentUser.name;
+    document.getElementById('sb-role').textContent   = currentRole === 'doctor' ? '🩺 Doctor' : '🗂️ Receptionist';
+
+    // Upload button only for receptionist (doctors can only view)
+    if (currentRole === 'receptionist') {
+      document.getElementById('upload-trigger-btn').style.display = 'flex';
+    }
+
+    document.getElementById('topbar-sub').textContent =
+      currentRole === 'doctor'
+        ? 'Viewing reports assigned to you and all patients'
+        : 'Upload and manage patient medical reports';
+
+    loadDoctors();
+    loadReports();
+    setupDragDrop();
+
+    // Set today as default date
+    document.getElementById('u-date').valueAsDate = new Date();
+  }
+
+  // ── Load doctors for filter + upload dropdown ────────────────────
+  async function loadDoctors() {
+    const { data } = await sb.from('doctors').select('name, department').order('name');
+    if (!data) return;
+
+    const deptMap = { CARD:'Cardiology', ORTH:'Orthopedics', NEURO:'Neurology', PEDI:'Pediatrics', DERM:'Dermatology', GYNE:'Gynecology', OPTH:'Ophthalmology', ENT:'ENT', PSYCH:'Psychiatry', GENSURG:'General Surgery', GENMED:'General Medicine' };
+
+    // Doctor filter dropdown
+    const df = document.getElementById('doctor-filter');
+    data.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.name;
+      opt.textContent = d.name;
+      df.appendChild(opt);
+    });
+
+    // Upload doctor dropdown
+    const ud = document.getElementById('u-doctor');
+    ud.innerHTML = '<option value="">Select doctor</option>';
+    data.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.name;
+      opt.textContent = d.name + ' — ' + (deptMap[d.department] || d.department);
+      if (currentRole === 'doctor' && d.name === currentUser.name) opt.selected = true;
+      ud.appendChild(opt);
+    });
+  }
+
+  // ── Load reports ─────────────────────────────────────────────────
+  async function loadReports() {
+    document.getElementById('reports-container').innerHTML = '<div class="spinner"><div class="spin"></div></div>';
+
+    const { data, error } = await sb
+      .from('patient_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      document.getElementById('reports-container').innerHTML = `<div class="empty"><div class="ei">⚠️</div><h3>Error loading reports</h3><p>${error.message}</p></div>`;
+      return;
+    }
+
+    allReports = data || [];
+    updateStats();
+    renderReports(allReports);
+  }
+
+  // ── Stats ────────────────────────────────────────────────────────
+  function updateStats() {
+    document.getElementById('st-total').textContent = allReports.length;
+    document.getElementById('st-xray').textContent  = allReports.filter(r => r.report_type === 'X-Ray').length;
+    document.getElementById('st-mri').textContent   = allReports.filter(r => r.report_type === 'MRI').length;
+    document.getElementById('st-other').textContent = allReports.filter(r => !['X-Ray','MRI'].includes(r.report_type)).length;
+  }
+
+  // ── Render grid ──────────────────────────────────────────────────
+  function renderReports(reports) {
+    if (reports.length === 0) {
+      document.getElementById('reports-container').innerHTML =
+        '<div class="empty"><div class="ei">📭</div><h3>No reports found</h3><p>No reports match your current filters.</p></div>';
+      return;
+    }
+
+    const cards = reports.map((r, i) => {
+      const cfg  = TYPE_CONFIG[r.report_type] || TYPE_CONFIG['Other'];
+      const date = r.report_date ? new Date(r.report_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—';
+      return `
+        <div class="report-card" onclick="viewReport(${i})">
+          <div class="strip ${cfg.strip}"></div>
+          <div class="body">
+            <span class="report-type-badge ${cfg.badge}">${cfg.icon} ${r.report_type}</span>
+            <div class="report-patient-name">${r.patient_name}</div>
+            <div class="report-patient-id">${r.patient_id || '—'}</div>
+            <div class="report-meta">
+              <span>👨‍⚕️ <b>${r.doctor_name}</b></span>
+              <span>📅 <b>${date}</b></span>
+              ${r.notes ? `<span>📝 <b>${r.notes.slice(0,45)}${r.notes.length>45?'…':''}</b></span>` : ''}
+            </div>
+          </div>
+          <div class="footer">
+            <span class="uploader">↑ ${r.uploaded_by}</span>
+            <button class="view-btn" onclick="event.stopPropagation();viewReport(${i})">View →</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('reports-container').innerHTML = `<div class="reports-grid">${cards}</div>`;
+  }
+
+  // ── Filters ──────────────────────────────────────────────────────
+  function applyFilters() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const type   = document.getElementById('type-filter').value;
+    const doctor = document.getElementById('doctor-filter').value;
+
+    const filtered = allReports.filter(r =>
+      (!search || (r.patient_name||'').toLowerCase().includes(search) || (r.patient_id||'').toLowerCase().includes(search)) &&
+      (!type   || r.report_type === type) &&
+      (!doctor || r.doctor_name === doctor)
+    );
+    renderReports(filtered);
+  }
+
+  function filterByType(type) {
+    document.getElementById('type-filter').value = type;
+    applyFilters();
+    document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+
+  // ── View report modal ────────────────────────────────────────────
+  async function viewReport(index) {
+    const r    = allReports[index];
+    const cfg  = TYPE_CONFIG[r.report_type] || TYPE_CONFIG['Other'];
+    const date = r.report_date ? new Date(r.report_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—';
+
+    document.getElementById('view-modal-title').textContent = cfg.icon + ' ' + r.report_type + ' — ' + r.patient_name;
+
+    // Get file URL from Supabase Storage
+    let fileHtml = `<div class="no-preview"><span class="file-icon">📄</span>No file attached</div>`;
+    if (r.file_path) {
+      const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(r.file_path);
+      const url = urlData?.publicUrl;
+      const ext = r.file_path.split('.').pop().toLowerCase();
+      if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+        fileHtml = `<img src="${url}" alt="Report image" style="max-width:100%;max-height:460px;object-fit:contain;border-radius:8px;"/>`;
+      } else if (ext === 'pdf') {
+        fileHtml = `<iframe src="${url}" style="width:100%;height:460px;border:none;border-radius:8px;"></iframe>`;
+      } else {
+        fileHtml = `<div class="no-preview"><span class="file-icon">📄</span><div>File: ${r.file_path.split('/').pop()}</div><div style="margin-top:8px;font-size:11px;">Preview not available for this format</div></div>`;
+      }
+    }
+
+    // Download URL
+    let downloadBtn = '';
+    if (r.file_path) {
+      const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(r.file_path);
+      downloadBtn = `<a class="download-btn" href="${urlData.publicUrl}" target="_blank" download>⬇️ Download Report</a>`;
+    }
+
+    document.getElementById('report-preview-content').innerHTML = `
+      <div class="preview-file">${fileHtml}</div>
+      <div>
+        <div class="detail-row"><span class="k">Patient</span>    <span class="v">${r.patient_name}</span></div>
+        <div class="detail-row"><span class="k">Patient ID</span> <span class="v" style="font-family:monospace">${r.patient_id||'—'}</span></div>
+        <div class="detail-row"><span class="k">Report Type</span><span class="v">${r.report_type}</span></div>
+        <div class="detail-row"><span class="k">Doctor</span>     <span class="v">${r.doctor_name}</span></div>
+        <div class="detail-row"><span class="k">Date</span>       <span class="v">${date}</span></div>
+        <div class="detail-row"><span class="k">Uploaded By</span><span class="v">${r.uploaded_by}</span></div>
+        ${r.notes ? `<div class="detail-row"><span class="k">Notes</span><span class="v" style="max-width:220px;text-align:right;">${r.notes}</span></div>` : ''}
+      </div>
+      ${downloadBtn}`;
+
+    document.getElementById('view-overlay').classList.add('show');
+  }
+
+  // ── Upload modal ─────────────────────────────────────────────────
+  function openUploadModal()  { document.getElementById('upload-overlay').classList.add('show'); }
+  function closeUploadModal() { document.getElementById('upload-overlay').classList.remove('show'); }
+
+  function fileSelected(input) {
+    const file = input.files[0];
+    if (file) document.getElementById('file-name-display').textContent = '✅ ' + file.name + ' (' + (file.size/1024/1024).toFixed(2) + ' MB)';
+  }
+
+  function setupDragDrop() {
+    const dz = document.getElementById('drop-zone');
+    dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('drag');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        const input = document.getElementById('u-file');
+        const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+        fileSelected(input);
+      }
+    });
+  }
+
+  async function uploadReport() {
+    const patientName = document.getElementById('u-patient-name').value.trim();
+    const patientId   = document.getElementById('u-patient-id').value.trim();
+    const type        = document.getElementById('u-type').value;
+    const doctor      = document.getElementById('u-doctor').value;
+    const date        = document.getElementById('u-date').value;
+    const notes       = document.getElementById('u-notes').value.trim();
+    const fileInput   = document.getElementById('u-file');
+    const file        = fileInput.files[0];
+
+    if (!patientName || !type || !doctor || !date || !file) {
+      showUploadMsg('error', '⚠️ Please fill all required fields and select a file.'); return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      showUploadMsg('error', '⚠️ File size exceeds 20MB limit.'); return;
+    }
+
+    const btn = document.getElementById('upload-btn');
+    btn.disabled = true; btn.textContent = 'Uploading...';
+    showProgress(10, 'Preparing file...');
+
+    try {
+      // Upload file to Supabase Storage
+      const ext      = file.name.split('.').pop();
+      const filePath = `reports/${Date.now()}_${patientName.replace(/\s+/g,'_')}.${ext}`;
+
+      showProgress(40, 'Uploading file...');
+
+      const { error: storageError } = await sb.storage.from(BUCKET).upload(filePath, file, { cacheControl: '3600', upsert: false });
+      if (storageError) throw new Error('Storage error: ' + storageError.message);
+
+      showProgress(75, 'Saving record...');
+
+      // Insert record into Supabase DB
+      const { error: dbError } = await sb.from('patient_reports').insert([{
+        patient_name: patientName,
+        patient_id:   patientId || null,
+        report_type:  type,
+        doctor_name:  doctor,
+        report_date:  date,
+        notes:        notes || null,
+        file_path:    filePath,
+        uploaded_by:  currentUser.name,
+        uploaded_role: currentRole
+      }]);
+      if (dbError) throw new Error('Database error: ' + dbError.message);
+
+      showProgress(100, 'Done!');
+      showUploadMsg('success', '✅ Report uploaded successfully!');
+
+      // Reset form
+      setTimeout(() => {
+        document.getElementById('u-patient-name').value = '';
+        document.getElementById('u-patient-id').value   = '';
+        document.getElementById('u-type').value         = '';
+        document.getElementById('u-notes').value        = '';
+        document.getElementById('u-file').value         = '';
+        document.getElementById('file-name-display').textContent = '';
+        document.getElementById('progress-wrap').classList.remove('show');
+        closeUploadModal();
+        loadReports();
+      }, 1500);
+
+    } catch(err) {
+      showUploadMsg('error', '❌ ' + err.message);
+      document.getElementById('progress-wrap').classList.remove('show');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Upload Report';
+    }
+  }
+
+  function showProgress(pct, label) {
+    document.getElementById('progress-wrap').classList.add('show');
+    document.getElementById('progress-fill').style.width  = pct + '%';
+    document.getElementById('progress-label').textContent = label;
+  }
+
+  function showUploadMsg(type, text) {
+    const el = document.getElementById('upload-msg');
+    el.className = 'msg ' + type + ' show';
+    el.textContent = text;
+  }
+
+  function logout() {
+    sessionStorage.removeItem('doctor');
+    sessionStorage.removeItem('receptionist');
+    window.location.href = 'login.html';
+  }
+</script>
+</body>
+</html>

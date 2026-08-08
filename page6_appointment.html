@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloom - Appointment Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Decorative Circles */
+        .decorative-circle {
+            position: fixed;
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .circle-left {
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 107, 107, 0.6);
+            left: -100px;
+            bottom: 100px;
+        }
+
+        .circle-right-top {
+            width: 80px;
+            height: 80px;
+            background: rgba(100, 181, 246, 0.4);
+            right: 30px;
+            top: 20px;
+        }
+
+        .circle-right-bottom {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.5);
+            right: 50px;
+            bottom: 50px;
+        }
+
+        /* What People Say Section */
+        .testimonial-section {
+            text-align: center;
+            padding: 60px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .testimonial-section h2 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
+
+        .testimonial-text {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .testimonial-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto;
+            background: #ddd;
+            overflow: hidden;
+        }
+
+        .testimonial-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .nav-arrows {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .arrow {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .arrow:hover {
+            border-color: #FF4081;
+            background: #FF4081;
+            color: white;
+        }
+
+        /* Appointment Section */
+        .appointment-section {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            margin: 40px auto;
+            max-width: 900px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .appointment-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .doctor-image {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .doctor-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .appointment-form-container {
+            padding: 20px 0;
+        }
+
+        .section-label {
+            color: #FF4081;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .appointment-form-container h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.2;
+            color: #1a1a1a;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 15px;
+            border: 2px solid #E8E8E8;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s;
+            background: #fff;
+            color: #333;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .form-group select option[value=""] {
+            color: #999;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FF4081;
+            box-shadow: 0 0 0 3px rgba(255, 64, 129, 0.08);
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .field-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #FF4081 0%, #E91E63 100%);
+            color: white;
+            border: none;
+            padding: 16px 50px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 64, 129, 0.4);
+        }
+
+        /* News Section */
+        .news-section {
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-subtitle {
+            color: #FF4081;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .news-section h2 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 50px;
+            color: #1a1a1a;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .featured-news {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .news-images {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            height: 250px;
+        }
+
+        .news-img {
+            background: #ddd;
+            overflow: hidden;
+        }
+
+        .news-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .news-content {
+            padding: 30px;
+            text-align: left;
+        }
+
+        .news-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .news-content h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .news-content p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .read-more {
+            display: inline-block;
+            padding: 10px 25px;
+            background: #4DD0E1;
+            color: white;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .read-more:hover {
+            background: #26C6DA;
+        }
+
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .news-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            text-align: left;
+        }
+
+        .news-item-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: #ddd;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .news-item-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .news-item-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .news-item-content p {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .news-date {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Footer */
+        footer {
+            background: #1a2332;
+            color: white;
+            padding: 60px 40px 30px;
+            margin-top: 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            color: #333;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #4DD0E1;
+            border-radius: 50%;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a2332;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .phone-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a2332;
+            margin-bottom: 15px;
+        }
+
+        .footer-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #4DD0E1;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .newsletter-form button {
+            padding: 12px 25px;
+            background: #4DD0E1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .newsletter-form button:hover {
+            background: #26C6DA;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .appointment-content {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .appointment-section {
+                padding: 40px 20px;
+            }
+
+            .testimonial-section h2,
+            .news-section h2,
+            .appointment-form-container h2 {
+                font-size: 24px;
+            }
+        }
+    
+        /* ── Success Overlay ───────────────────────────────────────── */
+        #success-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        #success-overlay.show { display: flex; }
+        @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+        .success-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 48px 40px;
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: popUp 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+        @keyframes popUp { from { transform:scale(0.7); opacity:0 } to { transform:scale(1); opacity:1 } }
+        .success-circle {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #1a7a4a, #2ecc71);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            animation: scaleIn 0.5s 0.2s both;
+        }
+        @keyframes scaleIn { from { transform:scale(0) } to { transform:scale(1) } }
+        .success-circle svg { width: 44px; height: 44px; }
+        .success-card h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a2e44;
+            margin-bottom: 10px;
+        }
+        .success-card p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .success-pid {
+            background: #e6f9f0;
+            border: 1px dashed #2ecc71;
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin: 18px 0;
+            font-size: 15px;
+            color: #1a7a4a;
+            font-weight: 600;
+        }
+        .success-pid span { font-size: 20px; letter-spacing: 1px; }
+        .success-close {
+            margin-top: 10px;
+            padding: 12px 36px;
+            background: linear-gradient(135deg, #1a7a4a, #27ae60);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .success-close:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39,174,96,0.4); }
+
+        </style>
+    <!-- EmailJS SDK for sending emails directly from the browser -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+
+<body>
+    <nav
+        style="display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;font-family:'Inter',sans-serif;">
+        <a href="page1_home.html"
+            style="display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:700;color:#0d0d0d;text-decoration:none;">
+            <img src="doctor logo1.jpg" alt="Doctor Logo" height="50">
+            </div>
+        </a>
+        <ul style="display:flex;gap:36px;list-style:none;margin:0;padding:0;">
+            <li><a href="page1_home.html"
+                    style="text-decoration:none;color:#6b7280;font-size:0.95rem;font-weight:500;transition:color .2s;">Home</a>
+            </li>
+            <li><a href="page2_services.html"
+                    style="text-decoration:none;color:#6b7280;font-size:0.95rem;font-weight:500;">Services</a></li>
+            <li><a href="page3_doctors.html"
+                    style="text-decoration:none;color:#6b7280;font-size:0.95rem;font-weight:500;">Doctors</a></li>
+            <li><a href="page4_aboutus.html"
+                    style="text-decoration:none;color:#6b7280;font-size:0.95rem;font-weight:500;">About Us</a></li>
+            <li><a href="page5_reviews.html"
+                    style="text-decoration:none;color:#6b7280;font-size:0.95rem;font-weight:500;">Reviews</a></li>
+        </ul>
+        <a href="page6_appointment.html"
+            style="background:#18b89a;color:white;padding:11px 24px;border-radius:50px;font-size:0.9rem;font-weight:600;text-decoration:none;">Book
+            Appointment</a>
+    </nav>
+    <!-- Decorative Circles -->
+    <div class="decorative-circle circle-left"></div>
+    <div class="decorative-circle circle-right-top"></div>
+    <div class="decorative-circle circle-right-bottom"></div>
+
+    <!-- What People Say Section -->
+    <div class="testimonial-section">
+        <div class="nav-arrows">
+            <div class="arrow">‹</div>
+            <div style="flex: 1;">
+                <h2>What People Say</h2>
+                <p class="testimonial-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed enim neque tempus tempor.
+                    Sed bibendum mi sed est ornare interdum lorem posuere in quam, semper duis lectus urna
+                    in purus ante id aliquet orci. Purus ante id commodo dui.
+                </p>
+                <div class="testimonial-avatar">
+                    <!-- Add testimonial image here -->
+                </div>
+            </div>
+            <div class="arrow">›</div>
+        </div>
+    </div>
+
+    <!-- Appointment Section -->
+    <div class="appointment-section">
+        <div class="appointment-content">
+            <div class="doctor-image">
+                <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&h=600&fit=crop"
+                    alt="Doctor">
+            </div>
+
+            <div class="appointment-form-container">
+                <div class="section-label">Make An Appointment</div>
+                <h2>Get An Appointment<br>For Get Release</h2>
+
+                <form class="form-grid" id="appointment-form">
+                    <div class="form-group">
+                        <input type="text" id="full-name" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" placeholder="Email Address" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" id="phone" placeholder="Phone Number" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="date" id="appointment-date" placeholder="Date Select Here" required>
+                        <small id="date-error" style="color:#c0392b;font-size:12px;margin-top:5px;display:none;">Please
+                            select a future date (today or later is not allowed — must be from tomorrow
+                            onwards).</small>
+                    </div>
+                    <div class="form-group">
+                        <input type="time" id="appointment-time" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="subject" placeholder="Subject or Reason" required>
+                    </div>
+                    <div class="form-group">
+                        <select id="doctor" required>
+                            <option value="">Loading doctors...</option>
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" id="age" placeholder="Age" min="1" max="120" required>
+                    </div>
+                    <div class="form-group full-width" style="text-align: center; margin-top: 10px;">
+                        <button type="submit" class="submit-btn" id="submit-btn">Send Message</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- News Section -->
+    <div class="news-section">
+        <div class="section-subtitle">Our News</div>
+        <h2>Psychi Care Recent News</h2>
+
+        <div class="news-grid">
+            <div class="featured-news">
+                <div class="news-images">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=300&h=250&fit=crop"
+                            alt="News">
+                    </div>
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=300&h=250&fit=crop"
+                            alt="News">
+                    </div>
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=300&h=250&fit=crop"
+                            alt="News">
+                    </div>
+                </div>
+                <div class="news-content">
+                    <div class="news-meta">
+                        <span>👤 By John Doe</span>
+                        <span>📅 23 March 2024</span>
+                    </div>
+                    <h3>How your personality made your happiness</h3>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed bibendum mi sed est ornare interdum
+                        lorem.</p>
+                    <a href="#" class="read-more">Read More</a>
+                </div>
+            </div>
+
+            <div class="news-list">
+                <div class="news-item">
+                    <div class="news-item-img">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop"
+                            alt="News">
+                    </div>
+                    <div class="news-item-content">
+                        <div class="news-date">📅 12 Nov 2025</div>
+                        <h4>Are you have Depress?</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit lorem duis lectus ornare interdum
+                            lorem.</p>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-item-img">
+                        <img src="https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=80&h=80&fit=crop"
+                            alt="News">
+                    </div>
+                    <div class="news-item-content">
+                        <div class="news-date">📅 12 Nov 2025</div>
+                        <h4>How your face and color</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit lorem duis lectus ornare interdum
+                            lorem.</p>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-item-img">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop"
+                            alt="News">
+                    </div>
+                    <div class="news-item-content">
+                        <div class="news-date">📅 12 Nov 2025</div>
+                        <h4>it's my body language important?</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit lorem duis lectus ornare interdum
+                            lorem.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo-section">
+                <div class="footer-logo">
+                    <div class="logo-icon"></div>
+                    <div class="logo-text">bloom</div>
+                </div>
+                <div class="phone-number">(804) 779-2381</div>
+                <div class="contact-info">
+                    <div>📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__"
+                            data-cfemail="066f68606946646a69696b286569">[email&#160;protected]</a></div>
+                    <div>📍 123 Street, Somewhere, State,<br>Country, 123</div>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Installation</h3>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Department</a></li>
+                    <li><a href="#">Our Team</a></li>
+                    <li><a href="#">Our Achievements</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Support</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Terms</a></li>
+                    <li><a href="#">Resources</a></li>
+                    <li><a href="#">Work Process</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Pricing Structure</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Let's Talk</h3>
+                <p style="color: #ccc; font-size: 14px; margin-bottom: 15px;">
+                    If you can be your best self and <br>it can happen
+                </p>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Email here">
+                    <button type="submit">Go</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2024 Bloom. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // ── Date validation: only future dates (from tomorrow) allowed ────────────
+        (function setMinDate() {
+            const dateInput = document.getElementById('appointment-date');
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);          // move to tomorrow
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const dd = String(tomorrow.getDate()).padStart(2, '0');
+            dateInput.min = `${yyyy}-${mm}-${dd}`;             // block today & past
+
+            dateInput.addEventListener('change', function () {
+                const errEl = document.getElementById('date-error');
+                if (this.value && this.value < this.min) {
+                    this.value = '';
+                    errEl.style.display = 'block';
+                } else {
+                    errEl.style.display = 'none';
+                }
+            });
+        })();
+
+        // ── Supabase config ───────────────────────────────────────────────────────
+        // NOTE: Ensure your Supabase `appointments` table has these columns:
+        //   ALTER TABLE appointments ADD COLUMN IF NOT EXISTS gender text;
+        //   ALTER TABLE appointments ADD COLUMN IF NOT EXISTS age    int;
+        const SUPABASE_URL = 'https://opggbcjkqnkwcaptmszy.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_PI_Kg3Jccqchl9Q5WSPUIg_ftk2OmCF';
+
+        // supabase-js v2: createClient lives on the global `supabase` object
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ── Load doctors from Supabase into dropdown ──────────────────────────────
+        async function loadDoctors() {
+            const select = document.getElementById('doctor');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('doctors')
+                    .select('name, department')
+                    .order('name', { ascending: true });
+
+                select.innerHTML = '<option value="">Select A Doctor</option>';
+                if (error || !data || data.length === 0) {
+                    select.innerHTML += '<option disabled>No doctors found</option>';
+                    return;
+                }
+                data.forEach(doc => {
+                    const deptMap = {
+                        CARD:'Cardiology', ORTH:'Orthopedics', NEURO:'Neurology',
+                        PEDI:'Pediatrics', DERM:'Dermatology', GYNE:'Gynecology',
+                        OPTH:'Ophthalmology', ENT:'ENT', PSYCH:'Psychiatry',
+                        GENSURG:'General Surgery', GENMED:'General Medicine'
+                    };
+                    const deptLabel = deptMap[doc.department] || doc.department;
+                    const opt = document.createElement('option');
+                    opt.value = doc.name;
+                    opt.textContent = doc.name + ' — ' + deptLabel;
+                    select.appendChild(opt);
+                });
+            } catch(e) {
+                select.innerHTML = '<option value="">Select A Doctor</option>';
+            }
+        }
+        loadDoctors();
+
+        // ── Inline feedback helper ────────────────────────────────────────────────
+        function showMessage(type, text) {
+            const old = document.getElementById('form-message');
+            if (old) old.remove();
+
+            const msg = document.createElement('p');
+            msg.id = 'form-message';
+            msg.style.cssText =
+                'margin-top:14px;padding:12px 16px;border-radius:8px;font-size:14px;' +
+                'font-weight:500;text-align:center;' +
+                (type === 'success'
+                    ? 'background:#e6f9f0;color:#1a7a4a;border:1px solid #a3e4c1;'
+                    : 'background:#fff0f3;color:#c0392b;border:1px solid #f5b7b1;');
+            msg.textContent = text;
+
+            document.getElementById('submit-btn')
+                .closest('.form-group')
+                .insertAdjacentElement('afterend', msg);
+
+            if (type === 'success') setTimeout(() => msg.remove(), 6000);
+        }
+
+        // ── Patient ID generator ──────────────────────────────────────────────────
+        // Format: PAT-XXXXXX  (6 uppercase alphanumeric characters)
+        function generatePatientId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let id = 'PAT-';
+            for (let i = 0; i < 6; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+
+        // ── Lookup or create patient ID by email ──────────────────────────────────
+        async function getOrCreatePatientId(email) {
+            // Search for an existing appointment with this email
+            const { data, error } = await supabaseClient
+                .from('appointments')
+                .select('patient_id')
+                .eq('email', email)
+                .not('patient_id', 'is', null)
+                .order('created_at', { ascending: true })
+                .limit(1);
+
+            if (error) {
+                console.error('Patient ID lookup error:', error);
+                // Fall back to generating a new ID if lookup fails
+                return generatePatientId();
+            }
+
+            if (data && data.length > 0 && data[0].patient_id) {
+                // ✅ Returning patient — reuse their existing ID
+                return data[0].patient_id;
+            }
+
+            // 🆕 New patient — generate a fresh unique ID
+            return generatePatientId();
+        }
+
+        // ── Form submission ───────────────────────────────────────────────────────
+        document.getElementById('appointment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Guard: reject today's date or any past date
+            const dateInput = document.getElementById('appointment-date');
+            if (dateInput.value && dateInput.value < dateInput.min) {
+                showMessage('error', '❌ Please select a future date. Past dates and today are not allowed.');
+                dateInput.value = '';
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = 'Sending…';
+            submitBtn.disabled = true;
+
+            const email = document.getElementById('email').value.trim();
+            const ageVal = parseInt(document.getElementById('age').value, 10);
+
+            try {
+                // Step 1: Get existing patient ID for this email, or generate a new one
+                const patientId = await getOrCreatePatientId(email);
+
+                // Step 2: Build the appointment record including the patient ID
+                const appointmentData = {
+                    patient_id: patientId,
+                    name: document.getElementById('full-name').value.trim(),
+                    email: email,
+                    phone: document.getElementById('phone').value.trim(),
+                    appointment_date: document.getElementById('appointment-date').value,
+                    time: document.getElementById('appointment-time').value,
+                    subject: document.getElementById('subject').value.trim(),
+                    doctor: document.getElementById('doctor').value,
+                    gender: document.getElementById('gender').value,
+                    age: isNaN(ageVal) ? null : ageVal
+                };
+
+                // Step 3: Insert the appointment
+                const { error } = await supabaseClient
+                    .from('appointments')
+                    .insert([appointmentData]);
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    showMessage('error', '❌ Booking failed: ' + error.message);
+                } else {
+                    // Step 4: Generate & send confirmation email
+                    try {
+                        await sendConfirmationEmail(appointmentData);
+                    } catch (emailErr) {
+                        console.error('Email send failed (appointment still saved):', emailErr);
+                        console.error('EmailJS error detail:', JSON.stringify(emailErr));
+                    }
+                    showSuccessScreen(patientId, email);
+                    document.getElementById('appointment-form').reset();
+                }
+            } catch (err) {
+                console.error('Unexpected error:', err);
+                showMessage('error', '❌ An unexpected error occurred. Please try again.');
+            }
+
+            submitBtn.innerText = originalText;
+            submitBtn.disabled = false;
+        });
+
+        // ══════════════════════════════════════════════════════════════════════
+        // EMAIL CONFIG — fill in your 3 EmailJS values below
+        // ══════════════════════════════════════════════════════════════════════
+        const EMAILJS_SERVICE  = 'service_medicare';
+        const EMAILJS_TEMPLATE = 'template_hiiln3c';
+        const EMAILJS_PUBLIC   = 'pqsDPUO_P3hgRBeHP';
+        // ══════════════════════════════════════════════════════════════════════
+
+        function showSuccessScreen(patientId, email) {
+            document.getElementById('success-pid-value').textContent = patientId;
+            document.getElementById('success-overlay').classList.add('show');
+        }
+
+        async function sendConfirmationEmail(apt) {
+            const apptDate = apt.appointment_date
+                ? new Date(apt.appointment_date + 'T00:00:00').toLocaleDateString('en-IN', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                  })
+                : '—';
+
+            // Format time to 12-hour AM/PM
+            let apptTime = '—';
+            if (apt.time) {
+                const [h, m] = apt.time.split(':');
+                const hour = parseInt(h);
+                apptTime = (hour % 12 || 12) + ':' + m + ' ' + (hour < 12 ? 'AM' : 'PM');
+            }
+
+            // Initialize EmailJS and send directly — no external API needed
+            emailjs.init(EMAILJS_PUBLIC);
+
+            await emailjs.send(
+                EMAILJS_SERVICE,
+                EMAILJS_TEMPLATE,
+                {
+                    to_email:   apt.email,
+                    to_name:    apt.name,
+                    patient_id: apt.patient_id,
+                    doctor:     apt.doctor     || '—',
+                    appt_date:  apptDate,
+                    appt_time:  apptTime,
+                    subject:    apt.subject    || '—',
+                    phone:      apt.phone      || '—',
+                    message:    `Dear ${apt.name},\n\nYour appointment at MediCare General Hospital has been received and is under review.\n\nAppointment Details:\n• Patient ID : ${apt.patient_id}\n• Doctor     : ${apt.doctor || '—'}\n• Date       : ${apptDate}\n• Time       : ${apptTime}\n• Reason     : ${apt.subject || '—'}\n\nPlease arrive 15 minutes early and bring a valid photo ID.\n\n📍 Sector 5, Vaishali, Ghaziabad – 201010\n📞 +91 120 456 7890\n\nWarm regards,\nMediCare Team`
+                }
+            );
+        }
+    </script>
+
+
+    <!-- ── Booking Success Overlay ──────────────────────────────── -->
+    <div id="success-overlay">
+        <div class="success-card">
+            <div class="success-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </div>
+            <h2>Appointment Booked!</h2>
+            <p>Your appointment has been successfully submitted.<br>A confirmation email is on its way to you.</p>
+            <div class="success-pid">
+                Your Patient ID<br>
+                <span id="success-pid-value">—</span>
+            </div>
+            <p style="font-size:12px;color:#999;">Please save your Patient ID for check-in at the hospital.</p>
+            <a href="page10_patient_portal.html" style="display:block;margin-bottom:10px;padding:12px 36px;background:linear-gradient(135deg,#00a88a,#00c9a7);color:#1a2e44;text-decoration:none;border-radius:30px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;text-align:center;">📋 View My Appointments</a>
+            <button class="success-close" onclick="document.getElementById('success-overlay').classList.remove('show')">
+                Done ✓
+            </button>
+        </div>
+    </div>
+</body>
+</html>
