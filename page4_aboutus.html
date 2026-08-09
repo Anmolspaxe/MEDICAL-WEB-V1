@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Healora – About Us</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan: #00bcd4;
+      --cyan-dark: #0097a7;
+      --cyan-light: #e0f7fa;
+      --black: #0d1117;
+      --white: #ffffff;
+      --gray: #6b7280;
+      --light-bg: #f0f4f8;
+      --border: #e2e8f0;
+      --text: #1a202c;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 60px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Fraunces', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--black);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--cyan);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg { width: 18px; height: 18px; fill: white; }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--gray);
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover { color: var(--black); }
+    .nav-links a.active { color: var(--black); font-weight: 600; }
+
+    .btn-nav {
+      background: var(--cyan);
+      color: white;
+      border: none;
+      padding: 11px 24px;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+    }
+    .btn-nav:hover { background: var(--cyan-dark); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 480px;
+      overflow: hidden;
+    }
+
+    /* Left panel */
+    .hero-left {
+      padding: 60px 50px 50px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      background: var(--white);
+      z-index: 2;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+      margin-bottom: 14px;
+    }
+
+    .hero-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 900;
+      line-height: 1.15;
+      color: var(--black);
+      margin-bottom: 18px;
+    }
+
+    .hero-desc {
+      font-size: 0.88rem;
+      color: var(--gray);
+      line-height: 1.75;
+      max-width: 340px;
+      margin-bottom: 36px;
+    }
+
+    /* Floating team photo inside left panel */
+    .hero-inset {
+      width: 280px;
+      height: 180px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 4px solid var(--cyan);
+      box-shadow: 0 12px 32px rgba(0,188,212,0.18);
+      position: relative;
+      background: linear-gradient(135deg, #b2ebf2 0%, #4dd0e1 50%, #0097a7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .inset-placeholder { font-size: 4.5rem; }
+
+    /* Right panel – large photo */
+    .hero-right {
+      position: relative;
+      background: linear-gradient(145deg, #b2ebf2 0%, #4dd0e1 40%, #0097a7 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-right-photo {
+      font-size: 10rem;
+      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.15));
+      animation: floatUp 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatUp {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-12px); }
+    }
+
+    /* CTA area below left panel content */
+    .hero-cta {
+      margin-top: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .btn-appt {
+      background: var(--cyan);
+      color: white;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      box-shadow: 0 6px 20px rgba(0,188,212,0.3);
+    }
+
+    .btn-appt:hover { background: var(--cyan-dark); transform: translateY(-2px); }
+
+    .hours-pill {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--cyan-light);
+      border: 1.5px solid rgba(0,188,212,0.25);
+      border-radius: 50px;
+      padding: 12px 24px;
+    }
+
+    .hours-icon {
+      width: 34px;
+      height: 34px;
+      border: 2px solid rgba(0,188,212,0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .hours-text { font-size: 0.82rem; color: var(--text); line-height: 1.6; }
+    .hours-text strong { color: var(--cyan-dark); font-weight: 700; }
+
+    /* ── ACTIVITY SECTION ── */
+    .activity-section {
+      background: var(--light-bg);
+      padding: 72px 60px 80px;
+    }
+
+    .activity-header {
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeUp .6s ease .1s both;
+    }
+
+    .activity-eyebrow {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+
+    .activity-heading {
+      font-family: 'Fraunces', serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--black);
+      margin-bottom: 16px;
+    }
+
+    .activity-subtext {
+      font-size: 0.88rem;
+      color: var(--gray);
+      line-height: 1.7;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    /* Activity cards */
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .activity-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 30px 24px 28px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      transition: transform .3s ease, box-shadow .3s ease;
+      animation: fadeUp .5s ease both;
+    }
+
+    .activity-card:nth-child(1) { animation-delay: .1s; }
+    .activity-card:nth-child(2) { animation-delay: .2s; }
+    .activity-card:nth-child(3) { animation-delay: .3s; }
+    .activity-card:nth-child(4) { animation-delay: .4s; }
+
+    .activity-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(0,188,212,0.14);
+    }
+
+    .card-icon-wrap {
+      width: 52px;
+      height: 52px;
+      background: var(--cyan);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 12px rgba(0,188,212,0.3);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 10px;
+    }
+
+    .card-divider {
+      width: 36px;
+      height: 3px;
+      background: var(--cyan);
+      border-radius: 2px;
+      margin-bottom: 14px;
+    }
+
+    .card-desc {
+      font-size: 0.83rem;
+      color: var(--gray);
+      line-height: 1.7;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #0d0d0d;
+      color: white;
+      padding: 60px 60px 30px;
+    }
+
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.5fr;
+      gap: 50px;
+      padding-bottom: 50px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Fraunces', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      text-decoration: none;
+      margin-bottom: 24px;
+    }
+
+    .footer-tagline {
+      font-family: 'Fraunces', serif;
+      font-size: 2.1rem;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 28px;
+    }
+
+    .social-links { display: flex; gap: 14px; }
+
+    .social-links a {
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      transition: border-color .2s, color .2s;
+    }
+
+    .social-links a:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    .footer-col h4 { font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 20px; }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-col ul a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.88rem;
+      transition: color .2s;
+    }
+
+    .footer-col ul a:hover { color: var(--cyan); }
+
+    .footer-contact p { font-size: 0.88rem; color: rgba(255,255,255,0.55); line-height: 1.7; }
+    .footer-contact p + p { margin-top: 10px; }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 28px;
+    }
+
+    .footer-bottom-links { display: flex; gap: 24px; }
+
+    .footer-bottom-links a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.83rem;
+      transition: color .2s;
+    }
+
+    .footer-bottom-links a:hover { color: white; }
+    .footer-copy { color: rgba(255,255,255,0.45); font-size: 0.83rem; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-left { animation: fadeUp .6s ease both; }
+    .hero-right { animation: fadeUp .6s ease .2s both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      nav { padding: 14px 24px; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-right { min-height: 260px; }
+      .hero-left { padding: 40px 24px; }
+      .activity-section { padding: 50px 24px 60px; }
+      .activity-grid { grid-template-columns: repeat(2, 1fr); }
+      footer { padding: 50px 24px 24px; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+
+    @media (max-width: 540px) {
+      .activity-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+      .hero-inset { width: 220px; height: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav>
+  <a href="page1_home.html" class="logo">
+    <div class="logo-icon">
+     <img src="doctor logo1.jpg" alt="Doctor Logo" height="50">
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="page1_home.html">Home</a></li>
+    <li><a href="page2_services.html">Services</a></li>
+    <li><a href="page3_doctors.html">Doctors</a></li>
+    <li><a href="page4_aboutus.html" class="active">About Us</a></li>
+    <li><a href="page5_reviews.html">Reviews</a></li>
+  </ul>
+  <a href="page6_appointment.html"><button class="btn-nav btn-book">Book Appointment</button></a>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+
+  <!-- LEFT -->
+  <div class="hero-left">
+    <p class="hero-eyebrow">For Better Future</p>
+    <h1 class="hero-heading">Complete Health Care Solutions for Everyone</h1>
+    <p class="hero-desc">
+      DentalCare is most focused in helping you discover your most beautiful smile and overall wellness through expert medical guidance.
+    </p>
+
+    <!-- Floating inset team photo -->
+    <div class="hero-inset">
+      <span class="inset-placeholder">👥</span>
+    </div>
+
+    <!-- CTA + hours -->
+    <div class="hero-cta">
+      <button class="btn-appt">Make Appointment</button>
+
+      <div class="hours-pill">
+        <div class="hours-icon">🕙</div>
+        <div class="hours-text">
+          <div><strong>Mon-Fri</strong> 10:00am–23:00am</div>
+          <div><strong>Sat-Sun</strong> 10:00am–23:00am</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT – hero photo -->
+  <div class="hero-right">
+    <div class="hero-right-photo">🧑‍⚕️</div>
+  </div>
+
+</section>
+
+<!-- ── ACTIVITY SECTION ── -->
+<section class="activity-section">
+
+  <div class="activity-header">
+    <p class="activity-eyebrow">Cancer Care</p>
+    <h2 class="activity-heading">Our Activity</h2>
+    <p class="activity-subtext">
+      Problems trying to resolve the conflict between the two major realms of Classical physics, Newtonian mechanics.
+    </p>
+  </div>
+
+  <div class="activity-grid">
+
+    <div class="activity-card">
+      <div class="card-icon-wrap">❤️</div>
+      <h3 class="card-title">Book now</h3>
+      <div class="card-divider"></div>
+      <p class="card-desc">The gradual accumulation of information about atomic and small-scale behavior.</p>
+    </div>
+
+    <div class="activity-card">
+      <div class="card-icon-wrap">🩺</div>
+      <h3 class="card-title">Emergency Case</h3>
+      <div class="card-divider"></div>
+      <p class="card-desc">The gradual accumulation of information about atomic and small-scale behavior.</p>
+    </div>
+
+    <div class="activity-card">
+      <div class="card-icon-wrap">📋</div>
+      <h3 class="card-title">Painless procedures</h3>
+      <div class="card-divider"></div>
+      <p class="card-desc">The gradual accumulation of information about atomic and small-scale behavior.</p>
+    </div>
+
+    <div class="activity-card">
+      <div class="card-icon-wrap">⚕️</div>
+      <h3 class="card-title">Health Queries</h3>
+      <div class="card-divider"></div>
+      <p class="card-desc">The gradual accumulation of information about atomic and small-scale behavior.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+
+      <div>
+        <a href="#" class="footer-logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          Healora
+        </a>
+        <p class="footer-tagline">Your health, our commitment!</p>
+        <div class="social-links">
+          <a href="#" aria-label="X">𝕏</a>
+          <a href="#" aria-label="Facebook">f</a>
+          <a href="#" aria-label="LinkedIn">in</a>
+          <a href="#" aria-label="Instagram">◎</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Doctors</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">Testimonials</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">General Check-ups</a></li>
+          <li><a href="#">Cardiology</a></li>
+          <li><a href="#">Dermatology</a></li>
+          <li><a href="#">Pediatrics</a></li>
+          <li><a href="#">Telemedicine</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-contact">
+        <h4>Contact</h4>
+        <p>123 Wellness Street,<br>New York, USA</p>
+        <p>+1 (800) 234-5678</p>
+        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6615131616091412260b03020f051314074805090b">[email&#160;protected]</a></p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-bottom-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">FAQs</a>
+      </
